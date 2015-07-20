@@ -1,0 +1,26 @@
+.item-icon-left ion-spinner {
+    float: left;
+    margin-left: -3.2em;
+    margin-right: 1em;
+    margin-top: -0.2em;
+}
+
+.spinner svg {
+    width: 28px;
+    height: 28px;
+}
+
+.posicion {
+    position: absolute;
+    top: 170px;
+    left: 1305px;
+}
+
+.preguntaPos {
+    position: absolute;
+    top: 490px;
+    left: 485px;
+}
+/*.scroll-content {
+  top: 0 !important;
+}*/
