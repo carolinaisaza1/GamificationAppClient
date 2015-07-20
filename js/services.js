@@ -1,6 +1,6 @@
 angular.module('login.services', [])
     .factory('API', function($rootScope, $http, $ionicLoading, $window, $ionicHistory, $state, $ionicSideMenuDelegate) {
-        var base = "https://gamificationapp.herokuapp.com/";
+        var base = "http://localhost:9804";
 
         $rootScope.show = function(text) {
             $rootScope.loading = $ionicLoading.show({
@@ -158,6 +158,16 @@ angular.module('login.services', [])
                     }
                 });
             },
+
+            anadirImagen: function(data, token) {
+                return $http.post(base + '/anadirImagen', data, {
+                    method: 'POST',
+                    params: {
+                        token: token
+                    }
+                });
+            },
+
             unirseProblema: function(form, token) {
                 console.log("entré a service");
                 return $http.post(base + '/unirseProblema', form, {
