@@ -1,6 +1,6 @@
 angular.module('login.controllers', ['login.services'])
 
-.controller('loginController', function($rootScope, $scope, API, $window, $state) {
+.controller('loginController', function($rootScope, $scope, API, $window, $state,$ionicHistory) {
 
     $scope.user = {
         email: '',
@@ -24,6 +24,8 @@ angular.module('login.controllers', ['login.services'])
                 console.log(data);
                 $rootScope.setToken(data._id); // create a session kind of thing on the client side
                 $rootScope.show("Cargando...");
+                $ionicHistory.clearHistory();
+                $ionicHistory.clearCache();
                 $window.location.href = ('#/home');
             }).error(function(error) {
                 $rootScope.show(error.error);
@@ -32,12 +34,15 @@ angular.module('login.controllers', ['login.services'])
     }
 
     $scope.logueado = function() {
+        console.log("me ejecuté");
         var token = $rootScope.getToken();
         if (token != '') {
+            $ionicHistory.clearCache();
             $window.location.href = ('#/home');
         }
     }
-    $scope.logueado();
+
+  $scope.logueado();
 
     $scope.irRegistro = function() {
         $window.location.href = ('#/registrar');
