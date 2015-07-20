@@ -7,8 +7,6 @@ angular.module('login.controllers', ['login.services'])
         contrasena: ''
     };
 
-
-
     $scope.ingresar = function() { // Duda con ingresar
 
         var email = this.user.email;
@@ -26,7 +24,7 @@ angular.module('login.controllers', ['login.services'])
                 console.log(data);
                 $rootScope.setToken(data._id); // create a session kind of thing on the client side
                 $rootScope.show("Cargando...");
-                $window.location.href = ('#/app/primerNivel');
+                $window.location.href = ('#/home');
             }).error(function(error) {
                 $rootScope.show(error.error);
             });
@@ -36,9 +34,10 @@ angular.module('login.controllers', ['login.services'])
     $scope.logueado = function() {
         var token = $rootScope.getToken();
         if (token != '') {
-            $window.location.href = ('#/list');
+            $window.location.href = ('#/home');
         }
     }
+    $scope.logueado();
 
     $scope.irRegistro = function() {
         $window.location.href = ('#/registrar');
@@ -51,10 +50,6 @@ angular.module('login.controllers', ['login.services'])
     $scope.irSubir = function() {
         $window.location.href = ('#/subir');
     }
-
-    $scope.logueado();
-
-
 
 })
 
@@ -83,9 +78,9 @@ angular.module('login.controllers', ['login.services'])
     }
 })
 
-.controller('uploadController', function($scope, $rootScope, API){
+.controller('uploadController', function($scope, $rootScope, API) {
 
-    $rootScope.$on('event:file:selected',function(event,data){
+    $rootScope.$on('event:file:selected', function(event, data) {
         console.log(data.image);
         API.anadirImagen({
             data: data.image
@@ -504,6 +499,8 @@ angular.module('login.controllers', ['login.services'])
             $rootScope.show(error.error);
         });
     }
+
+    $scope.mostrarDatos();
 
 })
 
