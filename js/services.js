@@ -1,6 +1,8 @@
 angular.module('login.services', [])
-    .factory('API', function($rootScope, $http, $ionicLoading, $window, $ionicHistory, $state, $ionicSideMenuDelegate) {
-        var base = "https://gamificationapp.herokuapp.com/";
+
+    .factory('API', function($rootScope, $ionicPopup, $http, $ionicLoading, $window, $ionicHistory, $state, $ionicSideMenuDelegate) {
+        var base = "http://localhost:9804";
+
 
         $rootScope.show = function(text) {
             $rootScope.loading = $ionicLoading.show({
@@ -9,6 +11,15 @@ angular.module('login.services', [])
             });
         };
 
+        $rootScope.showAlert = function(titulo, cuerpo) {
+           var alertPopup = $ionicPopup.alert({
+             title: titulo,
+             template: cuerpo
+           });
+           alertPopup.then(function(res) {
+             console.log('');
+           });
+         };
 
         $rootScope.hide = function() {
             $ionicLoading.hide();
@@ -179,11 +190,11 @@ angular.module('login.services', [])
                 });
             },
 
-            verObjetivos: function(token) {
+            verObjetivos: function(idProblema) {
                 return $http.get(base + '/verObjetivos', {
                     method: 'GET',
                     params: {
-                        token: token
+                        _idProblema : idProblema
                     }
                 });
             },
@@ -228,9 +239,16 @@ angular.module('login.services', [])
                         _id : objetivo_id
                     }
                 });
+            },
+
+            preguntasUsuario : function(token){
+                return $http.get(base + '/listarPreguntasUsuario',{
+                    method:'GET',
+                    params:{
+                        token: token
+                    }
+                });
             }
-
-
 
 
         }

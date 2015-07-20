@@ -1,6 +1,6 @@
 angular.module('login.controllers', ['login.services'])
 
-.controller('loginController', function($rootScope, $scope, API, $window, $state,$ionicHistory) {
+.controller('loginController', function($rootScope, $scope, API, $window, $state, $ionicHistory) {
 
     $scope.user = {
         email: '',
@@ -31,18 +31,30 @@ angular.module('login.controllers', ['login.services'])
         }
     }
 
-    $scope.logueado = function() {
+    /*$scope.logueado = function() {
         var token = $rootScope.getToken();
         if (token != '') {
+            $ionicHistory.clearHistory();
+            $ionicHistory.clearCache();
+            $window.location.href = ('#/home');
+        }
+    }*/
+
+    $scope.logueado = function() {
+        var token = $rootScope.getToken();
+        var sesionActiva = $rootScope.isSessionActive();
+        console.log(token);
+        if (sesionActiva) {
+            $ionicHistory.clearHistory();
             $ionicHistory.clearCache();
             $window.location.href = ('#/home');
         }
     }
 
-  $scope.logueado();
+    $scope.logueado();
 
     $scope.irRegistro = function() {
-        $window.location.href = ('#/registrar');
+        $state.go('registrar');
     }
 
     $scope.irPassword = function() {
@@ -54,10 +66,14 @@ angular.module('login.controllers', ['login.services'])
     }
 })
 
-.controller('resetController', function($rootScope, API, $scope) {
+.controller('resetController', function($rootScope, API, $scope, $state) {
     $scope.user = {
         email: ''
     };
+
+    $scope.goBack = function() {
+        $state.go('entrar');
+    }
 
     $scope.enviar = function() {
         var email = this.user.email;
@@ -71,7 +87,7 @@ angular.module('login.controllers', ['login.services'])
                 email: email
             }).success(function(data) {
                 console.log('Successs');
-                $rootScope.show("Revise su bandeja de entrada");
+                $rootScope.showAlert('Recuperación de password', 'Revisa tu bandeja de entrada');
             }).error(function(error) {
                 $rootScope.show(error.error);
             });
@@ -186,7 +202,7 @@ angular.module('login.controllers', ['login.services'])
     }
 
     $scope.irObjetivos = function() {
-        $window.location.href = ('#/objetivos');
+        $state.go('app.objetivos');
     }
 
 })
@@ -197,7 +213,9 @@ angular.module('login.controllers', ['login.services'])
         id: '',
         titulo: '',
         descripcion: '',
-        fecha: ''
+        fecha: '',
+        nombreAutor: '',
+        apellidoAutor: ''
     };
 
     $ionicModal.fromTemplateUrl('modal.html', {
@@ -222,7 +240,7 @@ angular.module('login.controllers', ['login.services'])
             $rootScope.show("Cargando");
             $scope.newQuestion.show();
         }).error(function(data, status, headers, config) {
-            $rootScope.show(data.error);
+            $rootScope.showAlert('Error', data.error);
         });
 
     }
@@ -234,7 +252,12 @@ angular.module('login.controllers', ['login.services'])
         $scope.elemento.descripcion = pregunta.descripcion;
         $scope.elemento.fecha = new Date(pregunta.fechaLimite);
         $scope.elemento.id = pregunta._id;
-        $scope.modal.show();
+        API.mostrarInfo(pregunta.autor_id).success(function(data){
+            $scope.elemento.nombreAutor = data[0].nombre;
+            $scope.elemento.apellidoAutor = data[0].apellido;
+             $scope.modal.show();
+        });
+       
     }
 
     $scope.createQuestion = function() {
@@ -262,7 +285,6 @@ angular.module('login.controllers', ['login.services'])
 
     $scope.unirse = function() {
         API.verificarPregunta($rootScope.getToken()).success(function(data, status, headers, config) {
-            console.log("verificó pregunta");
             API.unirseProblema({
                 _id: $scope.elemento.id
             }, $rootScope.getToken()).success(function(data, status, headers, config) {
@@ -271,10 +293,10 @@ angular.module('login.controllers', ['login.services'])
                 API.cambiarNivel($scope.elemento.id);
                 $scope.refrescar();
             }).error(function(data, status, headers, config) {
-                $rootScope.show(data.error);
+                $rootScope.showAlert('Error', data.error);
             });
         }).error(function(data, status, headers, config) {
-            $rootScope.show(data.error);
+            $rootScope.showAlert('Error', data.error);
         });
 
     }
@@ -304,7 +326,7 @@ angular.module('login.controllers', ['login.services'])
 
 })
 
-.controller('RegistroController', function($rootScope, $scope, API, $window) {
+.controller('RegistroController', function($rootScope, $scope, API, $window, $state) {
 
     $scope.user = {
         email: '',
@@ -314,6 +336,10 @@ angular.module('login.controllers', ['login.services'])
         contrasenaRep: '',
         contrasena: ''
     };
+
+    $scope.goBack = function() {
+        $state.go('entrar');
+    }
 
     $scope.registrar = function() {
         var email = this.user.email;
@@ -473,11 +499,11 @@ angular.module('login.controllers', ['login.services'])
     };
 
     $scope.mostrarDatos = function() {
-            console.log("entro mostrarDatos");
-            $scope.user.email = '';
-            $scope.user.nombre = '';
-            $scope.user.contrasena= '';
-            $scope.user.apellido = '';
+        console.log("entro mostrarDatos");
+        $scope.user.email = '';
+        $scope.user.nombre = '';
+        $scope.user.contrasena = '';
+        $scope.user.apellido = '';
 
         API.mostrarInfo($rootScope.getToken()).success(function(data) {
             $scope.user.email = data[0].email;
@@ -521,7 +547,9 @@ angular.module('login.controllers', ['login.services'])
         votos: 0,
         descripcion: '',
         votosAcumulados: 0,
-        problema_id: ''
+        problema_id: '',
+        autorNombre: '',
+        autorApellido: ''
     };
 
     $ionicModal.fromTemplateUrl('votarModal.html', {
@@ -532,11 +560,17 @@ angular.module('login.controllers', ['login.services'])
     });
 
     $scope.objective = function(object) {
+        console.log(object);
         $scope.objetivo._id = object._id;
         //$scope.objetivo.votos = object.votos;
         $scope.objetivo.votosAcumulados = object.votos;
         $scope.objetivo.descripcion = object.descripcion;
-        $scope.votarModal.show();
+        API.mostrarInfo(object.autor_id).success(function(data) {
+            $scope.objetivo.autorNombre = data[0].nombre;
+            $scope.objetivo.autorApellido = data[0].apellido;
+            $scope.votarModal.show();
+        });
+
     }
 
     $scope.votar = function(voto) {
@@ -560,24 +594,34 @@ angular.module('login.controllers', ['login.services'])
 
     }
     $scope.visualizarObjetivos = function() {
-        console.log("visualizar")
-        API.verObjetivos($rootScope.getToken()).success(function(data) {
-
-            $scope.items = [];
-            for (var i = 0; i < data.length; i++) {
-
-                $scope.items.push(data[i]);
-
-            };
-            if ($scope.items.length == 0) {
-                $scope.noData = true;
-            } else {
-                $scope.noData = false;
+        API.preguntasUsuario($rootScope.getToken()).success(function(problemas) {
+            var i;
+            for (i = 0; i < problemas.length; i++) {
+                if (problemas[i].finalizado == false) {
+                    break;
+                }
             }
-            $scope.objetivo.problema_id = data[0].problema_id;
-        }).error(function(data, status, headers, config) {
-            $rootScope.show(error);
+            $scope.objetivo.problema_id = problemas[i]._id;
+            API.verObjetivos(problemas[i]._id).success(function(data) {
+
+                $scope.items = [];
+                for (var i = 0; i < data.length; i++) {
+
+                    $scope.items.push(data[i]);
+
+                };
+                if ($scope.items.length == 0) {
+                    $scope.noData = true;
+                } else {
+                    $scope.noData = false;
+                }
+
+            }).error(function(data, status, headers, config) {
+                $rootScope.show(error);
+            });
+
         });
+
     }
 
     $scope.anadirObjetivo = function() {
@@ -640,8 +684,52 @@ angular.module('login.controllers', ['login.services'])
         });
     }
 
-    $scope.irModificar = function(){
+    $scope.irModificar = function() {
         $window.location.reload();
         $window.location.href = ('#/app/modificar');
     }
+
+    $scope.irPerfil = function(){
+        $window.location.reload();
+        $window.location.href = ('#/app/perfil');
+    }
+})
+
+.controller('perfilController', function($rootScope, $scope, API, $window) {
+    $scope.datosUsuario = {
+        _id: '',
+        nombre: '',
+        apellido: '',
+        genero: '',
+        nivel: '',
+        puntos: '',
+        email: '',
+        nombrePreguntaActual: ''
+    };
+
+    $scope.verPerfil = function() {
+        API.mostrarInfo($rootScope.getToken()).success(function(data) {
+            $scope.datosUsuario._id = data[0]._id;
+            $scope.datosUsuario.nombre = data[0].nombre;
+            $scope.datosUsuario.apellido = data[0].apellido;
+            $scope.datosUsuario.genero = data[0].genero;
+            $scope.datosUsuario.nivel = data[0].nivel;
+            $scope.datosUsuario.puntos = data[0].puntos;
+            $scope.datosUsuario.email = data[0].email;
+            API.preguntasUsuario($rootScope.getToken()).success(function(preguntas) {
+                var i;
+                $scope.items = [];
+                for (i = 0; i < preguntas.length; i++) {
+                    if (preguntas[i].finalizado) {
+                        $scope.items.push(preguntas[i]);
+                    } else {
+                        $scope.datosUsuario.nombrePreguntaActual = preguntas[i].titulo;
+                    }
+                }
+            });
+
+        });
+    }
+
+    $scope.verPerfil();
 })
