@@ -41,6 +41,7 @@ angular.module('login.services', [])
 
         $rootScope.logout = function() {
             $rootScope.setToken("");
+            $window.location.reload();
             $window.location.href = '#/entrar';
         };
 
