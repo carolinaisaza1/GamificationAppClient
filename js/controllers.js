@@ -647,7 +647,7 @@ angular.module('login.controllers', ['login.services'])
 
 })
 
-.controller('homeController', function($rootScope, $scope, API, $window) {
+.controller('homeController', function($rootScope,$state, $scope, API, $window) {
 
     $scope.nivel = function() {
         API.mostrarInfo($rootScope.getToken()).success(function(data) {
@@ -674,13 +674,13 @@ angular.module('login.controllers', ['login.services'])
     $scope.irModificar = function() {
         //$window.location.reload();
         //$window.location.href = ('#/app/modificar');
-       $state.go('app.objetivos');
+        $state.go('app.modificar',{cache:false});
     }
 
     $scope.irPerfil = function(){
         //$window.location.reload();
         //$window.location.href = ('#/app/perfil');
-        $state.go('app.perfil');
+        $state.go('app.perfil',{cache:false});
     }
 })
 
