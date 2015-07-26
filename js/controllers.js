@@ -674,13 +674,13 @@ angular.module('login.controllers', ['login.services'])
     $scope.irModificar = function() {
         //$window.location.reload();
         //$window.location.href = ('#/app/modificar');
-        $state.go('app.modificar',{cache:false});
+       $state.go('app.objetivos');
     }
 
     $scope.irPerfil = function(){
         //$window.location.reload();
         //$window.location.href = ('#/app/perfil');
-        $state.go('app.perfil',{cache:false});
+        $state.go('app.perfil');
     }
 })
 
