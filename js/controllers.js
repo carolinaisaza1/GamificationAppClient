@@ -672,12 +672,14 @@ angular.module('login.controllers', ['login.services'])
 
     $scope.irModificar = function() {
         //$window.location.reload();
-        $window.location.href = ('#/app/modificar');
+        //$window.location.href = ('#/app/modificar');
+        $state.go('modificar',{cache:false})
     }
 
     $scope.irPerfil = function(){
         //$window.location.reload();
-        $window.location.href = ('#/app/perfil');
+        //$window.location.href = ('#/app/perfil');
+        $state.go('perfil',{cache:false})
     }
 })
 
