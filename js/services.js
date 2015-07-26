@@ -53,6 +53,8 @@ angular.module('login.services', [])
     $rootScope.logout = function() {
         $rootScope.setToken("");
         //$window.location.reload();
+         $ionicHistory.clearHistory();
+        $ionicHistory.clearCache();
         $window.location.href = '#/entrar';
     };
 
