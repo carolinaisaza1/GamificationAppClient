@@ -23,7 +23,6 @@ angular.module('login.controllers', ['login.services'])
             }).success(function(data) {
                 $rootScope.setToken(data._id); // create a session kind of thing on the client side
                 $rootScope.show("Cargando...");
-                $window.location.reload();
                 $window.location.href = ('#/home');
             }).error(function(error) {
                 $rootScope.show(error.error);
@@ -43,7 +42,6 @@ angular.module('login.controllers', ['login.services'])
     $scope.logueado = function() {
         var token = $rootScope.getToken();
         var sesionActiva = $rootScope.isSessionActive();
-        console.log(token);
         if (sesionActiva) {
             $ionicHistory.clearHistory();
             $ionicHistory.clearCache();
@@ -86,7 +84,6 @@ angular.module('login.controllers', ['login.services'])
             API.resetPassword({
                 email: email
             }).success(function(data) {
-                console.log('Successs');
                 $rootScope.showAlert('Recuperación de password', 'Revisa tu bandeja de entrada');
             }).error(function(error) {
                 $rootScope.show(error.error);
@@ -171,7 +168,6 @@ angular.module('login.controllers', ['login.services'])
             }]
         });
         myPopup.then(function(res) {
-            console.log(bandera);
             if (bandera == true) {
                 API.buscarCodigo({
                     token: res
@@ -348,9 +344,10 @@ angular.module('login.controllers', ['login.services'])
         var apellido = this.user.apellido;
         var genero = this.user.genero;
         var contrasenaRep = this.user.contrasenaRep;
+        var foto;
 
         console.log(genero);
-        if (!email || !contrasena || !nombre || !apellido || !contrasenaRep) {
+        if (!email || !contrasena || !nombre || !apellido || !contrasenaRep|| !genero) {
 
             $rootScope.show('No se admiten espacios vacíos');
 
@@ -359,7 +356,12 @@ angular.module('login.controllers', ['login.services'])
             if (contrasenaRep != contrasena) {
                 $rootScope.show('Las contraseñas no coinciden');
             } else {
-
+                if(genero == 'femenino'){
+                    foto= "http://res.cloudinary.com/udea/image/upload/v1437944503/55ad3491b827529b13f7ef89_u5yzvd.jpg";
+                }else{
+                    console.log("masculino");
+                    foto = "http://res.cloudinary.com/udea/image/upload/v1437944425/55ad3491b827529b13f7ef89_g79h5q.jpg";
+                }
                 API.registrar({
                     //_id: email,
                     email: email,
@@ -367,15 +369,10 @@ angular.module('login.controllers', ['login.services'])
                     nombre: nombre,
                     apellido: apellido,
                     genero: genero,
-                    colorCabello: "#000000",
-                    colorCara: "#ffe4c4",
-                    colorCamisa: "#228b22",
                     puntos: 10,
                     nivel: 1,
-                    trofeos: [],
-                    accesorios_id: []
+                    foto: foto
                 }).success(function(data) {
-                    console.log('Successs');
                     $rootScope.show("Cargando...");
                     $window.location.href = ('#/entrar');
                 }).error(function(error) {
@@ -414,8 +411,6 @@ angular.module('login.controllers', ['login.services'])
 
         var contrasena = contrasena;
         var email = this.user.email;
-
-        console.log(contrasena);
         if (!contrasena || !email) {
 
             $rootScope.show('No se admiten espacios vacíos');
@@ -462,9 +457,7 @@ angular.module('login.controllers', ['login.services'])
             }]
         });
         myPopup.then(function(res) {
-            console.log(bandera);
             if (bandera == true) {
-                console.log(res);
                 $scope.modificarDatos(res);
             }
         });
@@ -499,7 +492,6 @@ angular.module('login.controllers', ['login.services'])
     };
 
     $scope.mostrarDatos = function() {
-        console.log("entro mostrarDatos");
         $scope.user.email = '';
         $scope.user.nombre = '';
         $scope.user.contrasena = '';
@@ -521,19 +513,16 @@ angular.module('login.controllers', ['login.services'])
 
     $scope.visualizarRanking = function() {
         API.verRanking($rootScope.getToken()).success(function(data) {
-
-            $scope.items = [];
-            for (var i = 0; i < data.length; i++) {
-
-                $scope.items.push(data[i]);
-
+            $scope.users = [];
+            var i;
+            for (i = 0; i < data.length; i++) {
+                $scope.users.push(data[i]);
             };
-            if ($scope.items.length == 0) {
+            if ($scope.users.length == 0) {
                 $scope.noData = true;
             } else {
                 $scope.noData = false;
             }
-
         }).error(function(data, status, headers, config) {
             $rootScope.show("Hay un errorcito, qué pena");
         });
@@ -570,7 +559,6 @@ angular.module('login.controllers', ['login.services'])
             $scope.objetivo.autorApellido = data[0].apellido;
             $scope.votarModal.show();
         });
-
     }
 
     $scope.votar = function(voto) {
@@ -582,7 +570,7 @@ angular.module('login.controllers', ['login.services'])
                 $scope.visualizarObjetivos();
                 $rootScope.show("el objetivo ha recibido " + voto + " votos");
                 $scope.votarModal.hide();
-
+                API.verificarPasoNivel($scope.objetivo.problema_id);
             }).error(function(data, status, headers, config) {
                 $rootScope.show(data.error);
             });
@@ -606,9 +594,7 @@ angular.module('login.controllers', ['login.services'])
 
                 $scope.items = [];
                 for (var i = 0; i < data.length; i++) {
-
                     $scope.items.push(data[i]);
-
                 };
                 if ($scope.items.length == 0) {
                     $scope.noData = true;
@@ -633,9 +619,9 @@ angular.module('login.controllers', ['login.services'])
             API.nuevoObjetivo({
                 descripcion: descripcion,
                 problema_id: problema
-
             }, $rootScope.getToken()).success(function(data) {
                 $rootScope.show("Agregaste un objetivo nuevo, ganaste 2 puntos");
+                API.verificarPasoNivel($scope.objetivo.problema_id);
                 $scope.newObjective.hide();
                 $scope.visualizarObjetivos();
             }).error(function(error) {
@@ -669,7 +655,7 @@ angular.module('login.controllers', ['login.services'])
                 $window.location.href = ('#/app/primerNivel');
             } else {
                 if (data[0].nivel == 2) {
-                    $window.location.href = ('#/segundoNivel');
+                    $window.location.href = ('#/app/segundoNivel');
                 } else {
                     if (data[0].nivel == 3) {
                         $window.location.href = ('#/tercerNivel');
@@ -685,12 +671,12 @@ angular.module('login.controllers', ['login.services'])
     }
 
     $scope.irModificar = function() {
-        $window.location.reload();
+        //$window.location.reload();
         $window.location.href = ('#/app/modificar');
     }
 
     $scope.irPerfil = function(){
-        $window.location.reload();
+        //$window.location.reload();
         $window.location.href = ('#/app/perfil');
     }
 })
@@ -704,10 +690,12 @@ angular.module('login.controllers', ['login.services'])
         nivel: '',
         puntos: '',
         email: '',
-        nombrePreguntaActual: ''
+        nombrePreguntaActual: '',
+        foto: ''
     };
 
     $scope.verPerfil = function() {
+
         API.mostrarInfo($rootScope.getToken()).success(function(data) {
             $scope.datosUsuario._id = data[0]._id;
             $scope.datosUsuario.nombre = data[0].nombre;
@@ -716,6 +704,15 @@ angular.module('login.controllers', ['login.services'])
             $scope.datosUsuario.nivel = data[0].nivel;
             $scope.datosUsuario.puntos = data[0].puntos;
             $scope.datosUsuario.email = data[0].email;
+            $scope.datosUsuario.foto = data[0].foto;
+
+
+            /*API.cargarImagen($rootScope.getToken()).success(function(image) {
+                console.log('Intenta cargar la imagen pueees!');
+                //$scope.datosUsuario.foto = image;
+                console.log(image);
+            });*/
+
             API.preguntasUsuario($rootScope.getToken()).success(function(preguntas) {
                 var i;
                 $scope.items = [];
@@ -730,6 +727,20 @@ angular.module('login.controllers', ['login.services'])
 
         });
     }
+
+    $rootScope.$on('event:file:selected', function(event, data) {
+
+
+        API.anadirImagen({
+            data: data.image,
+            id_imagen: $scope.datosUsuario._id
+        }, $rootScope.getToken()).success(function(data, status, headers, config) {
+            $rootScope.show('Su foto de perfil ha sido cambiada con éxito');
+
+        }).error(function(data, status, headers, config) {
+            $rootScope.show(data.error);
+        })
+    });
 
     $scope.verPerfil();
 })
