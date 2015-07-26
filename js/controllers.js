@@ -670,16 +670,17 @@ angular.module('login.controllers', ['login.services'])
         });
     }
 
+    
     $scope.irModificar = function() {
         //$window.location.reload();
         //$window.location.href = ('#/app/modificar');
-        $state.go('modificar',{cache:false})
+        $state.go('app.modificar',{cache:false});
     }
 
     $scope.irPerfil = function(){
         //$window.location.reload();
         //$window.location.href = ('#/app/perfil');
-        $state.go('perfil',{cache:false})
+        $state.go('app.perfil',{cache:false});
     }
 })
 
