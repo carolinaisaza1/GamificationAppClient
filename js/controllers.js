@@ -47,7 +47,7 @@ angular.module('login.controllers', ['login.services'])
             }).success(function(data) {
                 $rootScope.setToken(data._id); // create a session kind of thing on the client side
                 $rootScope.show("Cargando...");
-                $window.location.reload();
+                //$window.location.reload();
                 $window.location.href = ('#/home');
             }).error(function(error) {
                 $rootScope.show(error.error);
@@ -667,7 +667,7 @@ angular.module('login.controllers', ['login.services'])
 
 })
 
-.controller('homeController', function($rootScope, $scope, API, $window) {
+.controller('homeController', function($ionicHistory, $rootScope, $scope, API, $window,$state, $stateParams) {
 
     $scope.nivel = function() {
         API.mostrarInfo($rootScope.getToken()).success(function(data) {
@@ -692,7 +692,10 @@ angular.module('login.controllers', ['login.services'])
 
     $scope.irModificar = function() {
       //  $window.location.reload();
-        $window.location.href = ('#/app/modificar');
+       // $window.location.href = ('#/app/modificar');
+       
+       $state.go('app.modificar');
+       $window.location.reload();
     }
 
     $scope.irPerfil = function(){
