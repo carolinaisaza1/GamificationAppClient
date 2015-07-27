@@ -1,10 +1,34 @@
 angular.module('login.controllers', ['login.services'])
 
-.controller('loginController', function($rootScope, $scope, API, $window, $state, $ionicHistory) {
+.controller('loginController', function($ionicPopup, $ionicPlatform, $rootScope, $scope, API, $window, $state, $ionicHistory) {
 
     $scope.user = {
         email: '',
         contrasena: ''
+    };
+
+    $ionicPlatform.registerBackButtonAction(function(event) {
+        if (($state.current.name == "home") || ($state.current.name == "entrar")) {
+            $scope.showConfirm();
+        } else {
+            navigator.app.backHistory();
+        }
+    }, 100);
+
+    $scope.showConfirm = function() {
+        var confirmPopup = $ionicPopup.confirm({
+            title: 'Salir',
+            template: '¿Desea salir de la aplicación?',
+            cancelText: 'No',
+            cancelType: 'button-positive',
+            okText: 'Sí',
+            okType: 'button-outline button-assertive'
+        });
+        confirmPopup.then(function(res) {
+            if (res) {
+                navigator.app.exitApp();
+            }
+        });
     };
 
     $scope.ingresar = function() { // Duda con ingresar
@@ -23,21 +47,13 @@ angular.module('login.controllers', ['login.services'])
             }).success(function(data) {
                 $rootScope.setToken(data._id); // create a session kind of thing on the client side
                 $rootScope.show("Cargando...");
+                $window.location.reload();
                 $window.location.href = ('#/home');
             }).error(function(error) {
                 $rootScope.show(error.error);
             });
         }
     }
-
-    /*$scope.logueado = function() {
-        var token = $rootScope.getToken();
-        if (token != '') {
-            $ionicHistory.clearHistory();
-            $ionicHistory.clearCache();
-            $window.location.href = ('#/home');
-        }
-    }*/
 
     $scope.logueado = function() {
         var token = $rootScope.getToken();
@@ -199,6 +215,10 @@ angular.module('login.controllers', ['login.services'])
 
     $scope.irObjetivos = function() {
         $state.go('app.objetivos');
+    }
+
+        $scope.irTrabajoFinal = function() {
+        $state.go('app.trabajoFinal');
     }
 
 })
@@ -647,7 +667,7 @@ angular.module('login.controllers', ['login.services'])
 
 })
 
-.controller('homeController', function($rootScope,$state, $scope, API, $window) {
+.controller('homeController', function($rootScope, $scope, API, $window) {
 
     $scope.nivel = function() {
         API.mostrarInfo($rootScope.getToken()).success(function(data) {
@@ -658,7 +678,7 @@ angular.module('login.controllers', ['login.services'])
                     $window.location.href = ('#/app/segundoNivel');
                 } else {
                     if (data[0].nivel == 3) {
-                        $window.location.href = ('#/tercerNivel');
+                        $window.location.href = ('#/app/tercerNivel');
                     } else {
                         $window.location.href = ('#/mundoMuertos');
                     }
@@ -670,17 +690,14 @@ angular.module('login.controllers', ['login.services'])
         });
     }
 
-    
     $scope.irModificar = function() {
-        //$window.location.reload();
-        //$window.location.href = ('#/app/modificar');
-        $state.go('app.modificar',{cache:false});
+      //  $window.location.reload();
+        $window.location.href = ('#/app/modificar');
     }
 
     $scope.irPerfil = function(){
-        //$window.location.reload();
-        //$window.location.href = ('#/app/perfil');
-        $state.go('app.perfil',{cache:false});
+       // $window.location.reload();
+        $window.location.href = ('#/app/perfil');
     }
 })
 
@@ -746,4 +763,22 @@ angular.module('login.controllers', ['login.services'])
     });
 
     $scope.verPerfil();
+})
+
+
+.controller('trabajoFinalController', function($rootScope, $scope, API, $window) {
+
+
+
+    $rootScope.$on('event:file:selected', function(event, data) {
+        API.subirTrabajo({
+            data: data.trabajo
+        }, $rootScope.getToken()).success(function(data, status, headers, config) {
+            $rootScope.show('Su archivo ha sido subido con éxito. La próxima vez que recargue la página podrá visualizarlo');
+
+        }).error(function(data, status, headers, config) {
+            $rootScope.show(data.error);
+        })
+    });
+
 })

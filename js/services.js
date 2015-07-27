@@ -1,7 +1,7 @@
 angular.module('login.services', [])
 
 .factory('API', function($rootScope, $ionicPopup, $http, $ionicLoading, $window, $ionicHistory, $state, $ionicSideMenuDelegate) {
-    var base = "https://gamificationapp.herokuapp.com/";
+    var base = "http://localhost:9804";
 
 
     $rootScope.show = function(text) {
@@ -53,8 +53,6 @@ angular.module('login.services', [])
     $rootScope.logout = function() {
         $rootScope.setToken("");
         //$window.location.reload();
-         $ionicHistory.clearHistory();
-        $ionicHistory.clearCache();
         $window.location.href = '#/entrar';
     };
 
@@ -193,6 +191,15 @@ angular.module('login.services', [])
 
         anadirImagen: function(data, token) {
             return $http.post(base + '/anadirImagen', data, {
+                method: 'POST',
+                params: {
+                    token: token
+                }
+            });
+        },
+
+        subirTrabajo: function(data, token) {
+            return $http.post(base + '/subirTrabajo', data, {
                 method: 'POST',
                 params: {
                     token: token
