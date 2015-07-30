@@ -1,14 +1,7 @@
-// Ionic Starter App
-
-// angular.module is a global place for creating, registering and retrieving Angular modules
-// 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
-// the 2nd parameter is an array of 'requires'
 angular.module('login', ['ionic', 'login.controllers', 'login.services', 'login.directives'])
 
 .run(function($ionicPlatform) {
     $ionicPlatform.ready(function() {
-        // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-        // for form inputs)
         if (window.cordova && window.cordova.plugins.Keyboard) {
             cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
         }
@@ -19,7 +12,6 @@ angular.module('login', ['ionic', 'login.controllers', 'login.services', 'login.
 })
 
 .config(function($stateProvider, $urlRouterProvider) {
-
     $stateProvider
 
         .state('app', {
@@ -52,7 +44,7 @@ angular.module('login', ['ionic', 'login.controllers', 'login.services', 'login.
         views: {
             'menuContent': {
                 templateUrl: "templates/primerNivel.html",
-                controller: "mapController"
+                controller: "primerNivelController"
             }
         }
 
@@ -127,17 +119,17 @@ angular.module('login', ['ionic', 'login.controllers', 'login.services', 'login.
         views: {
             "menuContent": {
                 templateUrl: "templates/segundoNivel.html",
-                controller: "mapController"
+                controller: "segundoNivelController"
             }
         }
     })
 
-     .state('app.tercerNivel', {
+    .state('app.tercerNivel', {
         url: "/tercerNivel",
         views: {
             "menuContent": {
                 templateUrl: "templates/tercerNivel.html",
-                controller: "mapController"
+                controller: "tercerNivelController"
             }
         }
     })
@@ -159,6 +151,21 @@ angular.module('login', ['ionic', 'login.controllers', 'login.services', 'login.
             "menuContent": {
                 templateUrl: "templates/perfil.html",
                 controller: "perfilController"
+            }
+        }
+    })
+
+    .state('error', {
+        url: "/error",
+        templateUrl: "templates/error.html"
+    })
+
+    .state('app.acerca', {
+        url: "/acerca",
+        views: {
+            "menuContent": {
+                templateUrl: "templates/acerca.html",
+                controller: "homeController"
             }
         }
     })

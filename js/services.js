@@ -11,6 +11,18 @@ angular.module('login.services', [])
         });
     };
 
+    $rootScope.refrescar = function(text, state) {
+        $state.go(state);
+        $rootScope.loading = $ionicLoading.show({
+            template: '<p class="item-icon-left">' + text + '<ion-spinner class= "spinner-energized" icon="crescent"/></p>'
+        });
+        
+    };
+
+    $rootScope.refresh = function() {
+        $window.location.reload();
+    };
+
     $rootScope.showAlert = function(titulo, cuerpo) {
         var alertPopup = $ionicPopup.alert({
             title: titulo,
@@ -323,6 +335,15 @@ angular.module('login.services', [])
                 method: 'GET',
                 params: {
                     problema_id: idProblema
+                }
+            });
+        },
+
+        reiniciarNivel: function(idProblema){
+            return $http.get(base + '/reiniciarNivel', {
+                method: 'GET',
+                params: {
+                    pregunta_id: idProblema
                 }
             });
         }

@@ -1,6 +1,6 @@
 angular.module('login.controllers', ['login.services'])
 
-.controller('loginController', function($ionicPopup, $ionicPlatform, $rootScope, $scope, API, $window, $state, $ionicHistory) {
+.controller('loginController', function($ionicPopup, $ionicPlatform, $rootScope, $scope, API, $window, $state) {
 
     $scope.user = {
         email: '',
@@ -31,24 +31,20 @@ angular.module('login.controllers', ['login.services'])
         });
     };
 
-    $scope.ingresar = function() { // Duda con ingresar
+    $scope.ingresar = function() {
 
         var email = this.user.email;
         var contrasena = this.user.contrasena;
         if (!email || !contrasena) {
-
-            $rootScope.show('No se admiten espacios vacíos');
-
+            $rootScope.show('No se admiten campos vacíos');
         } else {
-
             API.signin({
                 email: email,
                 contrasena: contrasena
             }).success(function(data) {
-                $rootScope.setToken(data._id); // create a session kind of thing on the client side
-                $rootScope.show("Cargando...");
-                //$window.location.reload();
-                $window.location.href = ('#/home');
+                $rootScope.setToken(data._id);
+                $rootScope.refresh();
+                $rootScope.refrescar("Cargando...", 'home');
             }).error(function(error) {
                 $rootScope.show(error.error);
             });
@@ -59,9 +55,7 @@ angular.module('login.controllers', ['login.services'])
         var token = $rootScope.getToken();
         var sesionActiva = $rootScope.isSessionActive();
         if (sesionActiva) {
-            $ionicHistory.clearHistory();
-            $ionicHistory.clearCache();
-            $window.location.href = ('#/home');
+            $state.go('home');
         }
     }
 
@@ -72,11 +66,11 @@ angular.module('login.controllers', ['login.services'])
     }
 
     $scope.irPassword = function() {
-        $window.location.href = ('#/resetPassword');
+        $state.go('resetPassword');
     }
 
     $scope.irSubir = function() {
-        $window.location.href = ('#/subir');
+        $state.go('subir');
     }
 })
 
@@ -92,15 +86,12 @@ angular.module('login.controllers', ['login.services'])
     $scope.enviar = function() {
         var email = this.user.email;
         if (!email) {
-
-            $rootScope.show("No se admiten espacios vacíos");
-
+            $rootScope.show("No se admiten campos vacíos");
         } else {
-
             API.resetPassword({
                 email: email
             }).success(function(data) {
-                $rootScope.showAlert('Recuperación de password', 'Revisa tu bandeja de entrada');
+                $rootScope.showAlert('Recuperación de contraseña', 'Revisa tu bandeja de entrada');
             }).error(function(error) {
                 $rootScope.show(error.error);
             });
@@ -108,21 +99,7 @@ angular.module('login.controllers', ['login.services'])
     }
 })
 
-.controller('uploadController', function($scope, $rootScope, API) {
-
-    $rootScope.$on('event:file:selected', function(event, data) {
-        API.anadirImagen({
-            data: data.image
-        }, $rootScope.getToken()).success(function(data, status, headers, config) {
-            $rootScope.show("Su Imagen ha sido enviada, Conseguiste 14567 puntos");
-        }).error(function(data, status, headers, config) {
-            $rootScope.show(data.error);
-        })
-    });
-
-})
-
-.controller('newPassController', function($rootScope, API, $scope, $window, $ionicPopup) {
+.controller('newPassController', function($rootScope, API, $scope, $ionicPopup, $state) {
     $scope.user = {
         id: '',
         contrasenaRep: '',
@@ -130,25 +107,22 @@ angular.module('login.controllers', ['login.services'])
         codigo: ''
     };
 
-
     $scope.aceptar = function() {
-
         var contrasena = this.user.contrasenaNueva;
         var contrasenaRep = this.user.contrasenaRep;
         var ident = this.user.id;
         if (!contrasenaRep || !contrasena || !ident) {
-            $rootScope.show("No se admiten espacios vacíos");
+            $rootScope.show("No se admiten campos vacíos");
         } else {
             if (contrasena == contrasenaRep) {
-
                 API.newPassword({
                     id: ident,
                     contrasena: contrasena
                 }).success(function(data) {
-                    $rootScope.show("contraseña actualizada");
-                    $window.location.href = ('#/entrar');
+                    $rootScope.showAlert('Recuperación de contraseña', 'Contraseña actualizada');
+                    $state.go('entrar');
                 }).error(function(error) {
-                    $rootScope.show(error.error);
+                    $rootScope.showAlert('Error', error.error);
                 });
             }
         }
@@ -157,7 +131,6 @@ angular.module('login.controllers', ['login.services'])
     $scope.insertarCodigo = function() {
         $scope.data = {}
         var bandera = true;
-        // An elaborate, custom popup
         var myPopup = $ionicPopup.show({
             template: '<input type="text" ng-model="data.id">',
             title: 'Confirmación',
@@ -167,14 +140,14 @@ angular.module('login.controllers', ['login.services'])
                 text: 'Cancelar',
                 onTap: function() {
                     bandera = false;
-                    window.location.href = ('#/entrar');
+                    $state.go('entrar');
                 }
             }, {
                 text: '<b>Aceptar</b>',
                 type: 'button-positive',
                 onTap: function(e) {
                     if (!$scope.data.id) {
-                        alert("no se permiten campos vacíos");
+                        $rootScope.show("No se admiten campos vacíos");
                         e.preventDefault();
                     } else {
                         return $scope.data.id;
@@ -190,8 +163,8 @@ angular.module('login.controllers', ['login.services'])
                 }).success(function(data) {
                     $scope.user.id = data._id;
                 }).error(function(error) {
-                    $rootScope.show(error.error);
-                    $window.location.href = ('#/entrar');
+                    $rootScope.showAlert('Error', error.error);
+                    $state.go('entrar');
                 });
 
             }
@@ -200,30 +173,181 @@ angular.module('login.controllers', ['login.services'])
 
 })
 
-.controller('mapController', function($rootScope, $scope, API, $window, $state) {
-    $scope.irPreguntas = function() {
-        $state.go('app.preguntas');
+.controller('segundoNivelController', function($rootScope, $scope, API, $state, $ionicModal) {
+    $scope.preguntaUser = {
+        preguntaTitulo: '',
+        preguntaDescripcion: ''
     }
+
 
     $scope.reto = function() {
         API.nuevoReto($rootScope.getToken()).success(function(data, status, headers, config) {
             $rootScope.show("Conseguiste 5 puntos");
         }).error(function(data, status, headers, config) {
-            $rootScope.show("Oops Error, por favor inténtelo más tarde");
+            $rootScope.show("Ha ocurrido un error, por favor inténtelo más tarde");
         });
     }
 
     $scope.irObjetivos = function() {
-        $state.go('app.objetivos');
+        $rootScope.refrescar("Cargando...",'app.objetivos');
     }
 
-        $scope.irTrabajoFinal = function() {
-        $state.go('app.trabajoFinal');
+    $scope.verPregunta = function() {
+        API.preguntasUsuario($rootScope.getToken()).success(function(problemas) {
+            var i;
+            for (i = 0; i < problemas.length; i++) {
+                if (problemas[i].finalizado == false) {
+                    break;
+                }
+            }
+            $scope.preguntaUser.preguntaTitulo = problemas[i].titulo;
+            $scope.preguntaUser.preguntaDescripcion = problemas[i].descripcion;
+        });
     }
+    $scope.mostrarPregunta = function() {
+        $scope.verPregunta();
+        $scope.preguntaActual.show();
+    }
+
+    $ionicModal.fromTemplateUrl('preguntaActual.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+    }).then(function(modal) {
+        $scope.preguntaActual = modal;
+    });
+
+    $scope.verificarNivel = function() {
+        if ($rootScope.getToken() == '') {
+            $rootScope.refresh();
+            $state.go('error');
+        } else {
+            API.mostrarInfo($rootScope.getToken()).success(function(data) {
+                if (data[0].nivel != 2) {
+                    $rootScope.refresh();
+                    $rootScope.refrescar("Cargando...", 'error');
+                }
+            });
+        }
+    }
+    $scope.verificarNivel();
 
 })
 
-.controller('preguntasController', function($rootScope, $scope, API, $timeout, $ionicModal, $window) {
+.controller('primerNivelController', function($rootScope, $scope, API, $state) {
+    $scope.irPreguntas = function() {
+        $state.go('app.preguntas');
+        $rootScope.refresh();
+    }
+
+    $scope.reto = function() {
+        API.nuevoReto($rootScope.getToken()).success(function(data, status, headers, config) {
+            $rootScope.show("¡Bien hecho! Conseguiste 5 puntos");
+        }).error(function(data, status, headers, config) {
+            $rootScope.show("Ha ocurrido un error, por favor inténtelo más tarde");
+        });
+    }
+
+    $scope.verificarNivel = function() {
+        if ($rootScope.getToken() == '') {
+            $rootScope.refresh();
+            $rootScope.refrescar("Cargando...", 'error');
+        } else {
+            API.mostrarInfo($rootScope.getToken()).success(function(data) {
+                if (data[0].nivel != 1) {
+                    $rootScope.refresh();
+                    $rootScope.refrescar("Cargando...", 'error');
+                }
+            });
+        }
+    }
+
+    $scope.verificarNivel();
+})
+
+.controller('tercerNivelController', function($rootScope, $scope, API, $state, $ionicModal) {
+
+    $scope.reto = function() {
+        API.nuevoReto($rootScope.getToken()).success(function(data, status, headers, config) {
+            $rootScope.show("Conseguiste 5 puntos");
+        }).error(function(data, status, headers, config) {
+            $rootScope.show("Ha ocurrido un error, por favor inténtelo más tarde");
+        });
+    }
+
+    $scope.irTrabajoFinal = function() {
+        $state.go('app.trabajoFinal');
+    }
+    $scope.objetivosSeleccionados = function() {
+        API.preguntasUsuario($rootScope.getToken()).success(function(problemas) {
+            var i;
+            var problemaCurso = false;
+            for (i = 0; i < problemas.length; i++) {
+                if (problemas[i].finalizado == false) {
+                    problemaCurso = true;
+                    break;
+                }
+            }
+            if (problemaCurso) {
+                API.verObjetivos(problemas[i]._id).success(function(data) {
+                    var i;
+                    var votosMax = 0;
+                    $scope.items = [];
+                    for (i = 0; i < data.length; i++) {
+                        if (data[i].votos >= votosMax) {
+                            votosMax = data[i].votos;
+                        }
+                    }
+
+                    for (i = 0; i < data.length; i++) {
+                        if (data[i].votos == votosMax) {
+                            $scope.items.push(data[i]);
+                        }
+                    }
+
+                    if ($scope.items.length == 0) {
+                        $scope.noData = true;
+                    } else {
+                        $scope.noData = false;
+                    }
+
+
+                }).error(function(data, status, headers, config) {
+                    $rootScope.show(error);
+                });
+            }
+
+        });
+
+    }
+
+    $scope.mostrarObjetivosSelec = function() {
+        $scope.objetivosSelec.show();
+    }
+
+    $ionicModal.fromTemplateUrl('objetivosSelec.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+    }).then(function(modal) {
+        $scope.objetivosSelec = modal;
+    });
+
+    $scope.verificarNivel = function() {
+        if ($rootScope.getToken() == '') {
+            $rootScope.refresh();
+            $rootScope.refrescar("Cargando...", 'error');
+        } else {
+            API.mostrarInfo($rootScope.getToken()).success(function(data) {
+                if (data[0].nivel != 3) {
+                    $rootScope.refresh();
+                    $rootScope.refrescar("Cargando...", 'error');
+                }
+            });
+        }
+    }
+    $scope.verificarNivel();
+})
+
+.controller('preguntasController', function($rootScope, $scope, API, $timeout, $ionicModal) {
 
     $scope.elemento = {
         id: '',
@@ -261,19 +385,16 @@ angular.module('login.controllers', ['login.services'])
 
     }
 
-
     $scope.question = function(pregunta) {
-
         $scope.elemento.titulo = pregunta.titulo;
         $scope.elemento.descripcion = pregunta.descripcion;
         $scope.elemento.fecha = new Date(pregunta.fechaLimite);
         $scope.elemento.id = pregunta._id;
-        API.mostrarInfo(pregunta.autor_id).success(function(data){
+        API.mostrarInfo(pregunta.autor_id).success(function(data) {
             $scope.elemento.nombreAutor = data[0].nombre;
             $scope.elemento.apellidoAutor = data[0].apellido;
-             $scope.modal.show();
+            $scope.modal.show();
         });
-       
     }
 
     $scope.createQuestion = function() {
@@ -289,9 +410,9 @@ angular.module('login.controllers', ['login.services'])
                 descripcion: descripcion,
                 fechaLimite: fecha
             }, $rootScope.getToken()).success(function(data, status, headers, config) {
-                $rootScope.show("Su pregunta ha sido enviada, Conseguiste 15 puntos");
+                $rootScope.show("Su pregunta ha sido enviada, conseguiste 15 puntos");
                 $scope.newQuestion.hide();
-                $scope.refrescar();
+                $scope.refresh();
             }).error(function(data, status, headers, config) {
                 $rootScope.show(data.error);
             });
@@ -336,13 +457,13 @@ angular.module('login.controllers', ['login.services'])
             }
 
         }).error(function(data, status, headers, config) {
-            $rootScope.show("Hay un errorcito, qué pena");
+            $rootScope.show("Ha ocurrido un error, inténtelo más tarde");
         });
     };
 
 })
 
-.controller('RegistroController', function($rootScope, $scope, API, $window, $state) {
+.controller('RegistroController', function($rootScope, $scope, API, $state) {
 
     $scope.user = {
         email: '',
@@ -367,18 +488,15 @@ angular.module('login.controllers', ['login.services'])
         var foto;
 
         console.log(genero);
-        if (!email || !contrasena || !nombre || !apellido || !contrasenaRep|| !genero) {
-
-            $rootScope.show('No se admiten espacios vacíos');
-
+        if (!email || !contrasena || !nombre || !apellido || !contrasenaRep || !genero) {
+            $rootScope.show('No se admiten campos vacíos');
         } else {
-
             if (contrasenaRep != contrasena) {
                 $rootScope.show('Las contraseñas no coinciden');
             } else {
-                if(genero == 'femenino'){
-                    foto= "http://res.cloudinary.com/udea/image/upload/v1437944503/55ad3491b827529b13f7ef89_u5yzvd.jpg";
-                }else{
+                if (genero == 'femenino') {
+                    foto = "http://res.cloudinary.com/udea/image/upload/v1437944503/55ad3491b827529b13f7ef89_u5yzvd.jpg";
+                } else {
                     console.log("masculino");
                     foto = "http://res.cloudinary.com/udea/image/upload/v1437944425/55ad3491b827529b13f7ef89_g79h5q.jpg";
                 }
@@ -394,7 +512,7 @@ angular.module('login.controllers', ['login.services'])
                     foto: foto
                 }).success(function(data) {
                     $rootScope.show("Cargando...");
-                    $window.location.href = ('#/entrar');
+                    $state.go('entrar');
                 }).error(function(error) {
                     $rootScope.show(error.error);
                 });
@@ -403,7 +521,7 @@ angular.module('login.controllers', ['login.services'])
     }
 })
 
-.controller('modificarController', function($rootScope, $scope, API, $window, $ionicPopup) {
+.controller('modificarController', function($rootScope, $scope, API, $ionicPopup) {
 
     $scope.user = {
 
@@ -432,9 +550,7 @@ angular.module('login.controllers', ['login.services'])
         var contrasena = contrasena;
         var email = this.user.email;
         if (!contrasena || !email) {
-
             $rootScope.show('No se admiten espacios vacíos');
-
         } else {
 
             API.modificarDatos({
@@ -442,17 +558,17 @@ angular.module('login.controllers', ['login.services'])
                 email: email
             }, $rootScope.getToken()).success(function(data) {
                 $rootScope.show("Cargando...");
-                $window.location.href = ('#/home');
+                $state.go('home');
             }).error(function(error) {
                 $rootScope.show(error.error);
             });
 
         }
     }
+
     $scope.showPopup = function() {
         $scope.data = {}
         var bandera = true;
-        // An elaborate, custom popup
         var myPopup = $ionicPopup.show({
             template: '<input type="password" ng-model="data.contrasena">',
             title: 'Confirmación',
@@ -468,7 +584,7 @@ angular.module('login.controllers', ['login.services'])
                 type: 'button-positive',
                 onTap: function(e) {
                     if (!$scope.data.contrasena) {
-                        alert("no se permiten campos vacíos");
+                        $rootScope.show("No se permiten campos vacíos");
                         e.preventDefault();
                     } else {
                         return $scope.data.contrasena;
@@ -490,12 +606,10 @@ angular.module('login.controllers', ['login.services'])
         var contrasenaAct = this.userCont.contrasenaAct;
         var contrasenaRep = this.userCont.contrasenaRep;
         if (!contrasenaNueva || !contrasenaRep || !contrasenaAct) {
-
-            $rootScope.show('No se admiten espacios vacíos');
-
+            $rootScope.show('No se admiten campos vacíos');
         } else {
             if (contrasenaNueva != contrasenaRep) {
-                $rootScope.show('Las contraseñas ingresadas como nuevas no coinciden ');
+                $rootScope.show('Las contraseñas ingresadas como nuevas no coinciden');
             } else {
 
                 API.modificarContrasena({
@@ -503,7 +617,7 @@ angular.module('login.controllers', ['login.services'])
                     contrasenaNueva: contrasenaNueva
                 }, $rootScope.getToken()).success(function(data) {
                     $rootScope.show("Cargando...");
-                    $window.location.href = ('#/home');
+                    $state.go('home');
                 }).error(function(error) {
                     $rootScope.show(error.error);
                 });
@@ -529,7 +643,17 @@ angular.module('login.controllers', ['login.services'])
     $scope.mostrarDatos();
 })
 
-.controller('rankingController', function($rootScope, $scope, API, $window) {
+.controller('rankingController', function($rootScope, $scope, API, $ionicModal, $window) {
+    $scope.datosOtroUsuario = {
+        _id: '',
+        nombre: '',
+        apellido: '',
+        nivel: '',
+        puntos: '',
+        email: '',
+        nombrePreguntaActual: '',
+        foto: ''
+    };
 
     $scope.visualizarRanking = function() {
         API.verRanking($rootScope.getToken()).success(function(data) {
@@ -547,6 +671,43 @@ angular.module('login.controllers', ['login.services'])
             $rootScope.show("Hay un errorcito, qué pena");
         });
     }
+
+    $scope.verPerfilOtros = function(usuario) {
+        $scope.datosOtroUsuario._id = '';
+        $scope.datosOtroUsuario.nombre = '';
+        $scope.datosOtroUsuario.apellido = '';
+        $scope.datosOtroUsuario.nivel = '';
+        $scope.datosOtroUsuario.puntos = '';
+        $scope.datosOtroUsuario.email = '';
+        $scope.datosOtroUsuario.foto = '';
+         $scope.datosOtroUsuario.nombrePreguntaActual = '';
+        $scope.datosOtroUsuario._id = usuario._id;
+        $scope.datosOtroUsuario.nombre = usuario.nombre;
+        $scope.datosOtroUsuario.apellido = usuario.apellido;
+        $scope.datosOtroUsuario.nivel = usuario.nivel;
+        $scope.datosOtroUsuario.puntos = usuario.puntos;
+        $scope.datosOtroUsuario.email = usuario.email;
+        $scope.datosOtroUsuario.foto = usuario.foto;
+        API.preguntasUsuario($scope.datosOtroUsuario._id).success(function(preguntas) {
+            var i;
+            $scope.items = [];
+            for (i = 0; i < preguntas.length; i++) {
+                if (preguntas[i].finalizado) {
+                    $scope.items.push(preguntas[i]);
+                } else {
+                    $scope.datosOtroUsuario.nombrePreguntaActual = preguntas[i].titulo;
+                }
+            }
+        });
+        $scope.perfilUsuarios.show();
+    }
+    $ionicModal.fromTemplateUrl('perfilUsuarios.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+    }).then(function(modal) {
+        $scope.perfilUsuarios = modal;
+    });
+    
 })
 
 .controller('objetivosController', function($rootScope, $scope, API, $timeout, $ionicModal, $window) {
@@ -569,9 +730,7 @@ angular.module('login.controllers', ['login.services'])
     });
 
     $scope.objective = function(object) {
-        console.log(object);
         $scope.objetivo._id = object._id;
-        //$scope.objetivo.votos = object.votos;
         $scope.objetivo.votosAcumulados = object.votos;
         $scope.objetivo.descripcion = object.descripcion;
         API.mostrarInfo(object.autor_id).success(function(data) {
@@ -645,7 +804,7 @@ angular.module('login.controllers', ['login.services'])
                 $scope.newObjective.hide();
                 $scope.visualizarObjetivos();
             }).error(function(error) {
-                $rootScope.show("No se agregó el objetivo");
+                $rootScope.show("Ha ocurrido un error, no se agregó el objetivo");
             });
         }
     }
@@ -667,7 +826,7 @@ angular.module('login.controllers', ['login.services'])
 
 })
 
-.controller('homeController', function($ionicHistory, $rootScope, $scope, API, $window,$state, $stateParams) {
+.controller('homeController', function($rootScope, $scope, API, $window) {
 
     $scope.nivel = function() {
         API.mostrarInfo($rootScope.getToken()).success(function(data) {
@@ -691,20 +850,15 @@ angular.module('login.controllers', ['login.services'])
     }
 
     $scope.irModificar = function() {
-      //  $window.location.reload();
-       // $window.location.href = ('#/app/modificar');
-       
-       $state.go('app.modificar');
-       $window.location.reload();
+        $window.location.href = ('#/app/modificar');
     }
 
-    $scope.irPerfil = function(){
-       // $window.location.reload();
+    $scope.irPerfil = function() {
         $window.location.href = ('#/app/perfil');
     }
 })
 
-.controller('perfilController', function($rootScope, $scope, API, $window) {
+.controller('perfilController', function($ionicModal, $rootScope, $state, $scope, API, $window) {
     $scope.datosUsuario = {
         _id: '',
         nombre: '',
@@ -716,6 +870,39 @@ angular.module('login.controllers', ['login.services'])
         nombrePreguntaActual: '',
         foto: ''
     };
+
+    $scope.elemento = {
+        id: '',
+        titulo: '',
+        descripcion: '',
+        fecha: '',
+        nombreAutor: '',
+        apellidoAutor: '',
+        file: ''
+    };
+
+
+    $ionicModal.fromTemplateUrl('modalPregunta.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+    }).then(function(modal) {
+        $scope.modalPregunta = modal;
+    });
+
+    $scope.getInfo = function(pregunta) {
+
+        $scope.elemento.titulo = pregunta.titulo;
+        $scope.elemento.descripcion = pregunta.descripcion;
+        $scope.elemento.fecha = new Date(pregunta.fechaLimite);
+        $scope.elemento.id = pregunta._id;
+        $scope.elemento.file = pregunta.trabajo;
+        API.mostrarInfo(pregunta.autor_id).success(function(data) {
+            $scope.elemento.nombreAutor = data[0].nombre;
+            $scope.elemento.apellidoAutor = data[0].apellido;
+            $scope.modalPregunta.show();
+        });
+
+    }
 
     $scope.verPerfil = function() {
 
@@ -729,13 +916,6 @@ angular.module('login.controllers', ['login.services'])
             $scope.datosUsuario.email = data[0].email;
             $scope.datosUsuario.foto = data[0].foto;
 
-
-            /*API.cargarImagen($rootScope.getToken()).success(function(image) {
-                console.log('Intenta cargar la imagen pueees!');
-                //$scope.datosUsuario.foto = image;
-                console.log(image);
-            });*/
-
             API.preguntasUsuario($rootScope.getToken()).success(function(preguntas) {
                 var i;
                 $scope.items = [];
@@ -744,6 +924,7 @@ angular.module('login.controllers', ['login.services'])
                         $scope.items.push(preguntas[i]);
                     } else {
                         $scope.datosUsuario.nombrePreguntaActual = preguntas[i].titulo;
+                        $scope.datosUsuario.trabajoActual = preguntas[i].trabajo;
                     }
                 }
             });
@@ -753,17 +934,26 @@ angular.module('login.controllers', ['login.services'])
 
     $rootScope.$on('event:file:selected', function(event, data) {
 
+        console.log('Se intentó subir una imagen, los datos son:');
+        console.log(data.image);
 
-        API.anadirImagen({
-            data: data.image,
-            id_imagen: $scope.datosUsuario._id
-        }, $rootScope.getToken()).success(function(data, status, headers, config) {
-            $rootScope.show('Su foto de perfil ha sido cambiada con éxito');
+        if (data.image != null) {
+            API.anadirImagen({
+                data: data.image,
+                id_imagen: $scope.datosUsuario._id
+            }, $rootScope.getToken()).success(function(data, status, headers, config) {
+                $rootScope.show('Su foto de perfil ha sido cambiada con éxito');
+                $window.location.reload();
 
-        }).error(function(data, status, headers, config) {
-            $rootScope.show(data.error);
-        })
+            }).error(function(data, status, headers, config) {
+                $rootScope.show(data.error);
+            })
+        }
     });
+
+    $scope.mostrarTrabajo = function() {
+        window.open($scope.elemento.file, '_system', 'location=yes');
+    }
 
     $scope.verPerfil();
 })
@@ -771,17 +961,33 @@ angular.module('login.controllers', ['login.services'])
 
 .controller('trabajoFinalController', function($rootScope, $scope, API, $window) {
 
-
+    $scope.mostrarTrabajo = function() {
+        window.open($scope.datosUsuario.trabajoActual, '_system', 'location=yes');
+    }
 
     $rootScope.$on('event:file:selected', function(event, data) {
-        API.subirTrabajo({
-            data: data.trabajo
-        }, $rootScope.getToken()).success(function(data, status, headers, config) {
-            $rootScope.show('Su archivo ha sido subido con éxito. La próxima vez que recargue la página podrá visualizarlo');
 
-        }).error(function(data, status, headers, config) {
-            $rootScope.show(data.error);
-        })
+        if (data.trabajo != null) {
+            API.subirTrabajo({
+                data: data.trabajo
+            }, $rootScope.getToken()).success(function(data, status, headers, config) {
+                $rootScope.show('Su archivo ha sido subido con éxito.');
+                API.preguntasUsuario($rootScope.getToken()).success(function(problemas) {
+                    var i;
+                    var preguntaBandera = false;
+                    for (i = 0; i < problemas.length; i++) {
+                        if (problemas[i].finalizado == false) {
+                            preguntaBandera = true;
+                            break;
+                        }
+                    }
+                    if (preguntaBandera) {
+                        API.reiniciarNivel(problemas[i]._id);
+                    }
+                });
+            }).error(function(data, status, headers, config) {
+                $rootScope.show(data.error);
+            })
+        }
     });
-
 })
