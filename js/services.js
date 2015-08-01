@@ -14,8 +14,7 @@ angular.module('login.services', [])
     $rootScope.refrescar = function(text, state) {
         $state.go(state);
         $rootScope.loading = $ionicLoading.show({
-            template: '<p class="item-icon-left">' + text + '<ion-spinner class= "spinner-energized" icon="crescent"/></p>',
-            duration: 2000
+            template: '<p class="item-icon-left">' + text + '<ion-spinner class= "spinner-energized" icon="crescent"/></p>'
         });
         
     };
