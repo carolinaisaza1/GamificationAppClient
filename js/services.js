@@ -1,7 +1,7 @@
 angular.module('login.services', [])
 
 .factory('API', function($rootScope, $ionicPopup, $http, $ionicLoading, $window, $ionicHistory, $state, $ionicSideMenuDelegate) {
-    var base = "https://gamificationapp.herokuapp.com";
+    var base = "http://localhost:9804";
 
 
     $rootScope.show = function(text) {
@@ -346,8 +346,35 @@ angular.module('login.services', [])
                     pregunta_id: idProblema
                 }
             });
-        }
+        },
 
+        mostrarFormulario: function(token){
+             return $http.get(base + '/preguntasForm1', {
+                method: 'GET',
+                params: {
+                    token: token
+                }
+            });
+        },
+
+        puntajeReto1: function(token, puntaje) {
+            return $http.get(base + '/reto1', {
+                method: 'GET',
+                params: {
+                    token: token,
+                    puntaje: puntaje
+                }
+            });
+        },
+
+         palabras: function(token){
+           return $http.get(base + '/palabrasReto2', {
+                method: 'GET',
+                params: {
+                    token: token
+                }
+            }); 
+        },
 
     }
 });
