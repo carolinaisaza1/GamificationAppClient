@@ -28,6 +28,12 @@
     left: 1600px;
 }
 
+.estadoPos {
+    position: absolute;
+    top: 740px;
+    left: 1240px;
+}
+
 .preguntaPos {
     position: absolute;
     top: 250px;
@@ -102,3 +108,8 @@ background-color: #036;
 color: #fff;
 background-color: #369;
 }
+
+.background{
+    background-image: url("../img/fondo.jpg");
+}
+

@@ -375,6 +375,32 @@ angular.module('login.services', [])
                 }
             }); 
         },
+        mostrarParejas: function(token){
+             return $http.get(base + '/parejasReto3', {
+                method: 'GET',
+                params: {
+                    token: token
+                }
+            });
+        },
+
+        verEstadoArte: function(idProblema) {
+            return $http.get(base + '/verEstado', {
+                method: 'GET',
+                params: {
+                    _idProblema : idProblema
+                }
+            });
+        },
+         nuevoEstado: function(form, token) {
+            console.log(form);
+            return $http.post(base + '/nuevoEstado', form, {
+                method: 'POST',
+                params: {
+                    token: token
+                }
+            });
+        },
 
     }
 });
