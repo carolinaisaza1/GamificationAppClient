@@ -182,7 +182,7 @@ angular.module('login', ['ionic', 'login.controllers', 'login.services', 'login.
         url: "/estadoArte",
         views: {
             "menuContent": {
-                templateUrl: "templates/estadoDelArte.html",
+                templateUrl: "templates/EstadoDelArte.html",
                 controller: "EstadoArteController"
             }
         }
